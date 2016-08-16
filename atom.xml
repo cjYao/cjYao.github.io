@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>bryon</title>
   
-  <link href="/blog/atom.xml" rel="self"/>
+  <link href="/atom.xml" rel="self"/>
   
   <link href="www.bryon.cn/"/>
   <updated>2016-08-14T09:46:15.339Z</updated>
@@ -17,8 +17,8 @@
   
   <entry>
     <title>Hello World</title>
-    <link href="www.bryon.cn/2016/08/14/hello-world.html"/>
-    <id>www.bryon.cn/2016/08/14/hello-world.html</id>
+    <link href="www.bryon.cn//blog/2016/08/14/hello-world.html"/>
+    <id>www.bryon.cn//blog/2016/08/14/hello-world.html</id>
     <published>2016-08-14T09:46:15.339Z</published>
     <updated>2016-08-14T09:46:15.339Z</updated>
     
