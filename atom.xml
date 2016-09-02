@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="www.bryon.cn/"/>
-  <updated>2016-08-14T09:46:15.339Z</updated>
+  <updated>2016-09-02T05:32:14.878Z</updated>
   <id>www.bryon.cn/</id>
   
   <author>
@@ -14,6 +14,49 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>关于replication与cache的一点思考</title>
+    <link href="www.bryon.cn//blog/2016/09/02/2016-09-02.html"/>
+    <id>www.bryon.cn//blog/2016/09/02/2016-09-02.html</id>
+    <published>2016-09-02T03:57:04.000Z</published>
+    <updated>2016-09-02T05:32:14.878Z</updated>
+    
+    <content type="html"><![CDATA[<p>#cache 与 replication</p>
+<ul>
+<li><strong>为什么会出现cache与replication</strong>: 随着系统的规模与复杂性逐渐提升,系统的延迟会进一步提升，那么为了解决client/appication获取资源的延迟，就出现了缓存，副本。它们主要是对资源所在服务器的一些数据预先保存到cache/replication服务器中或则存到缓存中,一方面降低资源请求的延迟，提高存取效率，另一方面，对单点服务器的访问压力会极大缩小从而降低服务器发生故障的危险。</li>
+<li><p><strong>cache与replication之间的比较</strong>：</p>
+<ol>
+<li><p>replication可以用来解决单点服务器访问性能问题，cache也可以，但是对于replication第一次访问时数据已经在对应的副本里，而cache第一次访问时，数据几乎都不命中，当然你可以采用预取机制来进行提前把数据放到cache中，这可能会有所改善。</p>
+</li>
+<li><p>replication可以作为数据备份系统，而cache一般不可以。但是这也是replication的一个缺点，虽然它实现了fault tolerant,但是数据之间的更新，传输都将使得系统变得复杂，即带来了多个服务器间的一致性问题.硬盘所需的空间也比较大。当然对于replication系统我们也可以把它做成主设备进行更新操作，这些replica设备只进行读操作。从而降低不一致问题。这与cache作为内存缓存时是差不多的.</p>
+</li>
+<li><p>cache一个大的用途还可以用在内存缓存中，解决程序从磁盘读取数据慢的问题。</p>
+</li>
+<li><p>结合replication与cache的优缺点得出：加入预取机制的cache系统搭建起来更便宜而且比较简单，而replication相对就比较复杂。不过高可用系统感觉加上replication作为备份系统比较合适。当然两者可以进行结合。在cache中加入副本.</p>
+</li>
+</ol>
+</li>
+<li><p><strong>结论</strong>：<br>  其实副本与缓存本身概念之间就存在共同点，从某一方面来说它们都可以加速数据的获取，当然副本更多的是用在备份系统，提高数据的容错性，可以进行错误恢复。而cache这个概念更多的是进行部分小数据量的缓存，方面快速读取，简单高效。</p>
+<p>  最近一直在进行NYU mit distributed system 课程的学习 ，后面会陆续加上对源码的解读与分析.</p>
+</li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;#cache 与 replication&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;为什么会出现cache与replication&lt;/strong&gt;: 随着系统的规模与复杂性逐渐提升,系统的延迟会进一步提升，那么为了解决client/appication获取资源的延迟，就出
+    
+    </summary>
+    
+      <category term="distributed system" scheme="www.bryon.cn/categories/distributed-system/"/>
+    
+    
+      <category term="缓存cache" scheme="www.bryon.cn/tags/%E7%BC%93%E5%AD%98cache/"/>
+    
+  </entry>
   
   <entry>
     <title>Hello World</title>

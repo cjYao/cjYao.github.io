@@ -89,7 +89,7 @@
 <meta name="description" content="做一名优秀的架构师">
 <meta property="og:type" content="website">
 <meta property="og:title" content="bryon">
-<meta property="og:url" content="www.bryon.cn/index.html">
+<meta property="og:url" content="www.bryon.cn/categories/distributed-system/index.html">
 <meta property="og:site_name" content="bryon">
 <meta property="og:description" content="做一名优秀的架构师">
 <meta name="twitter:card" content="summary">
@@ -115,9 +115,9 @@
 
 
 
-  <link rel="canonical" href="www.bryon.cn/"/>
+  <link rel="canonical" href="www.bryon.cn/categories/distributed-system/"/>
 
-  <title> bryon </title>
+  <title> 分类: distributed system | bryon </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,9 +157,7 @@
     
   
 
-  <div class="container one-collumn sidebar-position-left 
-   page-home 
- ">
+  <div class="container one-collumn sidebar-position-left  ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -256,251 +254,40 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
-    
-      
 
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/09/02/2016-09-02.html" itemprop="url">
-                  关于replication与cache的一点思考
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-09-02T11:57:04+08:00" content="2016-09-02">
-              2016-09-02
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/distributed-system/" itemprop="url" rel="index">
-                    <span itemprop="name">distributed system</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/blog/2016/09/02/2016-09-02.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="/blog/2016/09/02/2016-09-02.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>#cache 与 replication</p>
-<ul>
-<li><strong>为什么会出现cache与replication</strong>: 随着系统的规模与复杂性逐渐提升,系统的延迟会进一步提升，那么为了解决client/appication获取资源的延迟，就出现了缓存，副本。它们主要是对资源所在服务器的一些数据预先保存到cache/replication服务器中或则存到缓存中,一方面降低资源请求的延迟，提高存取效率，另一方面，对单点服务器的访问压力会极大缩小从而降低服务器发生故障的危险。</li>
-<li><p><strong>cache与replication之间的比较</strong>：</p>
-<ol>
-<li><p>replication可以用来解决单点服务器访问性能问题，cache也可以，但是对于replication第一次访问时数据已经在对应的副本里，而cache第一次访问时，数据几乎都不命中，当然你可以采用预取机制来进行提前把数据放到cache中，这可能会有所改善。</p>
-</li>
-<li><p>replication可以作为数据备份系统，而cache一般不可以。但是这也是replication的一个缺点，虽然它实现了fault tolerant,但是数据之间的更新，传输都将使得系统变得复杂，即带来了多个服务器间的一致性问题.硬盘所需的空间也比较大。当然对于replication系统我们也可以把它做成主设备进行更新操作，这些replica设备只进行读操作。从而降低不一致问题。这与cache作为内存缓存时是差不多的.</p>
-</li>
-<li><p>cache一个大的用途还可以用在内存缓存中，解决程序从磁盘读取数据慢的问题。</p>
-</li>
-<li><p>结合replication与cache的优缺点得出：加入预取机制的cache系统搭建起来更便宜而且比较简单，而replication相对就比较复杂。不过高可用系统感觉加上replication作为备份系统比较合适。当然两者可以进行结合。在cache中加入副本.</p>
-</li>
-</ol>
-</li>
-<li><p><strong>结论</strong>：<br>  其实副本与缓存本身概念之间就存在共同点，从某一方面来说它们都可以加速数据的获取，当然副本更多的是用在备份系统，提高数据的容错性，可以进行错误恢复。而cache这个概念更多的是进行部分小数据量的缓存，方面快速读取，简单高效。</p>
-<p>  最近一直在进行NYU mit distributed system 课程的学习 ，后面会陆续加上对源码的解读与分析.</p>
-</li>
-</ul>
-
-          
-        
-      
+  <section id="posts" class="posts-collapse">
+    <div class="collection-title">
+      <h2 >
+        distributed system
+        <small>分类</small>
+      </h2>
     </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
 
     
       
 
-  
-  
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
 
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
+      <h1 class="post-title">
         
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
+            <a class="post-title-link" href="/blog/2016/09/02/2016-09-02.html" itemprop="url">
               
-                
-                <a class="post-title-link" href="/blog/2016/08/14/hello-world.html" itemprop="url">
-                  Hello World
-                </a>
+                <span itemprop="name">关于replication与cache的一点思考</span>
               
-            
-          </h1>
+            </a>
         
+      </h1>
 
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-08-14T17:46:15+08:00" content="2016-08-14">
-              2016-08-14
-            </time>
-          </span>
+      <div class="post-meta">
+        <time class="post-time" itemprop="dateCreated"
+              datetime="2016-09-02T11:57:04+08:00"
+              content="2016-09-02" >
+          09-02
+        </time>
+      </div>
 
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/blog/2016/08/14/hello-world.html#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="/blog/2016/08/14/hello-world.html" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo new <span class="string">"My New Post"</span></div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo server</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo generate</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo deploy</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
+    </header>
   </article>
 
 
@@ -508,6 +295,7 @@
   </section>
 
   
+
 
 
           </div>
