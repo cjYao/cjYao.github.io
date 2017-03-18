@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="www.bryon.cn/"/>
-  <updated>2017-03-18T16:11:24.956Z</updated>
+  <updated>2017-03-18T16:34:39.000Z</updated>
   <id>www.bryon.cn/</id>
   
   <author>
@@ -17,12 +17,18 @@
   
   <entry>
     <title></title>
-    <link href="www.bryon.cn//blog/2017/03/18/ProtocolBuffers%E5%88%9D%E6%8E%A2.html"/>
-    <id>www.bryon.cn//blog/2017/03/18/ProtocolBuffers初探.html</id>
-    <published>2017-03-17T16:00:00.000Z</published>
-    <updated>2017-03-18T16:11:24.956Z</updated>
+    <link href="www.bryon.cn//blog/2017/03/19/ProtocolBuffer%E5%88%9D%E6%8E%A2.html"/>
+    <id>www.bryon.cn//blog/2017/03/19/ProtocolBuffer初探.html</id>
+    <published>2017-03-18T16:00:00.000Z</published>
+    <updated>2017-03-18T16:34:39.000Z</updated>
     
-    <content type="html"><![CDATA[<h2 id="Protocol-Buffers是什么"><a href="#Protocol-Buffers是什么" class="headerlink" title="Protocol Buffers是什么?"></a>Protocol Buffers是什么?</h2><p>它是google开源的一个项目，Google给出的定义是<a href="https://developers.google.com/protocol-buffers/docs/overview" target="_blank" rel="external">Protocol buffers are a flexible,efficent,automated mechanism for serializing structured data-think XML,but smaller,faster,and simpler</a>.它其实就是一个数据描述语言，它能够将<strong>结构化</strong>的数据序列化，以用于<strong>数据存储</strong>，<strong>通信协议</strong>等方面。相较于JSON,XML等文本格式，Protobuf 主要是binary bits的。并且它还是跨平台,跨语言的.支持<strong>c++</strong>，<strong>java</strong>,<strong>c</strong>#,<strong>python</strong>…..</p>
+    <content type="html"><![CDATA[<hr>
+<p>title: ProtocolBuffer初探<br>date: 2017-03-19 00:30:42<br>categories:</p>
+<ul>
+<li>ProtocolBuffer<br>tags:<br>—protobuf<br>#Protocol Buffers初探</li>
+</ul>
+<hr>
+<h2 id="Protocol-Buffers是什么"><a href="#Protocol-Buffers是什么" class="headerlink" title="Protocol Buffers是什么?"></a>Protocol Buffers是什么?</h2><p>它是google开源的一个项目，Google给出的定义是<a href="https://developers.google.com/protocol-buffers/docs/overview" target="_blank" rel="external">Protocol buffers are a flexible,efficent,automated mechanism for serializing structured data-think XML,but smaller,faster,and simpler</a>.它其实就是一个数据描述语言，它能够将<strong>结构化</strong>的数据序列化，以用于<strong>数据存储</strong>，<strong>通信协议</strong>等方面。相较于JSON,XML等文本格式，Protobuf 主要是binary bits的。并且它还是跨平台,跨语言的.支持<strong>c++</strong>，<strong>java</strong>,<strong>c</strong>#,<strong>python</strong>…..</p>
 <h2 id="Protocol-Buffers是怎么工作的？"><a href="#Protocol-Buffers是怎么工作的？" class="headerlink" title="Protocol Buffers是怎么工作的？"></a>Protocol Buffers是怎么工作的？</h2><p>它主要通过在<code>.proto</code>文件中定义protobuf的消息类型进行序列化/反序列化。消息主要是由name-value pairs构成的。比如举一个简单的<code>.proto</code>文件消息格式.</p>
 <figure class="highlight protobuf"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">message</span> <span class="title">Student</span> </span>&#123;</div><div class="line">  <span class="keyword">required</span> <span class="built_in">string</span> name = <span class="number">1</span>;</div><div class="line">  <span class="keyword">required</span> <span class="built_in">int32</span> id = <span class="number">2</span>;</div><div class="line">  <span class="keyword">optional</span> <span class="built_in">string</span> email = <span class="number">3</span>;</div><div class="line"> </div><div class="line">  <span class="class"><span class="keyword">enum</span> <span class="title">PhoneType</span> </span>&#123;</div><div class="line">    MOBLILE = <span class="number">0</span>;</div><div class="line">    HOME = <span class="number">1</span>;</div><div class="line">    WORK = <span class="number">2</span>;</div><div class="line"> &#125;</div><div class="line"> </div><div class="line"> <span class="class"><span class="keyword">message</span> <span class="title">PhoneNumber</span> </span>&#123;</div><div class="line">   <span class="keyword">required</span> <span class="built_in">string</span> number = <span class="number">1</span>;</div><div class="line">   <span class="keyword">optional</span> PhoneType type = <span class="number">2</span> [default = HOME];</div><div class="line"> &#125;</div><div class="line"> <span class="keyword">repeated</span> PhoneNumber phone = <span class="number">4</span>;   </div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
@@ -52,11 +58,12 @@
     
     <summary type="html">
     
-      &lt;h2 id=&quot;Protocol-Buffers是什么&quot;&gt;&lt;a href=&quot;#Protocol-Buffers是什么&quot; class=&quot;headerlink&quot; title=&quot;Protocol Buffers是什么?&quot;&gt;&lt;/a&gt;Protocol Buffers是什么?&lt;/h2&gt;&lt;p&gt;
+      &lt;hr&gt;
+&lt;p&gt;title: ProtocolBuffer初探&lt;br&gt;date: 2017-03-19 00:30:42&lt;br&gt;categories:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ProtocolBuffer&lt;br&gt;tags:&lt;br&gt;—protobuf&lt;br&gt;#Protocol B
     
     </summary>
-    
-      <category term="ProtocolBuffers" scheme="www.bryon.cn/categories/ProtocolBuffers/"/>
     
     
   </entry>
