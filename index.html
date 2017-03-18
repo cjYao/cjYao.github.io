@@ -280,7 +280,7 @@
               
                 
                 <a class="post-title-link" href="/blog/2017/03/19/protocolbuffer初探.html" itemprop="url">
-                  未命名
+                  ProtocolBuffer初探
                 </a>
               
             
@@ -293,11 +293,30 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-03-19T00:00:00+08:00" content="2017-03-19">
+            <time itemprop="dateCreated" datetime="2017-03-19T00:30:42+08:00" content="2017-03-19">
               2017-03-19
             </time>
           </span>
 
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ProtocolBuffer/" itemprop="url" rel="index">
+                    <span itemprop="name">ProtocolBuffer</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
           
 
           
@@ -330,13 +349,7 @@
       
         
           
-            <hr>
-<p>title: ProtocolBuffer初探<br>date: 2017-03-19 00:30:42<br>categories:</p>
-<ul>
-<li>ProtocolBuffer<br>tags:<br>—protobuf<br>#Protocol Buffers初探</li>
-</ul>
-<hr>
-<h2 id="Protocol-Buffers是什么"><a href="#Protocol-Buffers是什么" class="headerlink" title="Protocol Buffers是什么?"></a>Protocol Buffers是什么?</h2><p>它是google开源的一个项目，Google给出的定义是<a href="https://developers.google.com/protocol-buffers/docs/overview" target="_blank" rel="external">Protocol buffers are a flexible,efficent,automated mechanism for serializing structured data-think XML,but smaller,faster,and simpler</a>.它其实就是一个数据描述语言，它能够将<strong>结构化</strong>的数据序列化，以用于<strong>数据存储</strong>，<strong>通信协议</strong>等方面。相较于JSON,XML等文本格式，Protobuf 主要是binary bits的。并且它还是跨平台,跨语言的.支持<strong>c++</strong>，<strong>java</strong>,<strong>c</strong>#,<strong>python</strong>…..</p>
+            <h2 id="Protocol-Buffers是什么"><a href="#Protocol-Buffers是什么" class="headerlink" title="Protocol Buffers是什么?"></a>Protocol Buffers是什么?</h2><p>它是google开源的一个项目，Google给出的定义是<a href="https://developers.google.com/protocol-buffers/docs/overview" target="_blank" rel="external">Protocol buffers are a flexible,efficent,automated mechanism for serializing structured data-think XML,but smaller,faster,and simpler</a>.它其实就是一个数据描述语言，它能够将<strong>结构化</strong>的数据序列化，以用于<strong>数据存储</strong>，<strong>通信协议</strong>等方面。相较于JSON,XML等文本格式，Protobuf 主要是binary bits的。并且它还是跨平台,跨语言的.支持<strong>c++</strong>，<strong>java</strong>,<strong>c</strong>#,<strong>python</strong>…..</p>
 <h2 id="Protocol-Buffers是怎么工作的？"><a href="#Protocol-Buffers是怎么工作的？" class="headerlink" title="Protocol Buffers是怎么工作的？"></a>Protocol Buffers是怎么工作的？</h2><p>它主要通过在<code>.proto</code>文件中定义protobuf的消息类型进行序列化/反序列化。消息主要是由name-value pairs构成的。比如举一个简单的<code>.proto</code>文件消息格式.</p>
 <figure class="highlight protobuf"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">message</span> <span class="title">Student</span> </span>&#123;</div><div class="line">  <span class="keyword">required</span> <span class="built_in">string</span> name = <span class="number">1</span>;</div><div class="line">  <span class="keyword">required</span> <span class="built_in">int32</span> id = <span class="number">2</span>;</div><div class="line">  <span class="keyword">optional</span> <span class="built_in">string</span> email = <span class="number">3</span>;</div><div class="line"> </div><div class="line">  <span class="class"><span class="keyword">enum</span> <span class="title">PhoneType</span> </span>&#123;</div><div class="line">    MOBLILE = <span class="number">0</span>;</div><div class="line">    HOME = <span class="number">1</span>;</div><div class="line">    WORK = <span class="number">2</span>;</div><div class="line"> &#125;</div><div class="line"> </div><div class="line"> <span class="class"><span class="keyword">message</span> <span class="title">PhoneNumber</span> </span>&#123;</div><div class="line">   <span class="keyword">required</span> <span class="built_in">string</span> number = <span class="number">1</span>;</div><div class="line">   <span class="keyword">optional</span> PhoneType type = <span class="number">2</span> [default = HOME];</div><div class="line"> &#125;</div><div class="line"> <span class="keyword">repeated</span> PhoneNumber phone = <span class="number">4</span>;   </div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
@@ -685,7 +698,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-count">2</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -694,7 +707,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-count">2</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
