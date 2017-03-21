@@ -415,7 +415,10 @@
 <ol>
 <li>首先zmalloc只是一个<code>wrapper</code>,它本身并没有实现自己的allocator分配器，你可以自己替换自己想用的任何内存分配器,比如TC_malloc,jemalloc,Mac中的malloc,或则linux中glibc中的malloc.</li>
 <li>zmalloc它新增一些自己的feature:<br>1)通过在每个分配的内存前面加上<code>PREFIX_SIZE</code>字段来存放本次申请的内存的大小.(如果分配器中没有实现这个功能的话)<br>2）它通过设置全局静态变量<code>used_memory</code>字段来表示本进程已经分配的内存总数.<br>3) 另外它每次申请的内存大小总是机器字长的整数倍，不足部分它会自动多分配一些内存.</li>
-<li>它本身在代码中也实现了一些线程安全方面的函数<h1 id="下面我们一起来看下zmalloc-c的源码分析"><a href="#下面我们一起来看下zmalloc-c的源码分析" class="headerlink" title="下面我们一起来看下zmalloc.c的源码分析"></a>下面我们一起来看下zmalloc.c的源码分析</h1></li>
+<li>它本身在代码中也实现了一些线程安全方面的函数</li>
+</ol>
+<p>#下面我们一起来看下zmalloc.c的源码分析</p>
+<ol>
 <li><code>zmalloc.c</code>中主要有一下几个函数：<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">void *zmalloc(size_t size);</div><div class="line">void *zcalloc(size_t size);</div><div class="line">void *zrealloc(void *ptr, size_t size);</div><div class="line">void zfree(void *ptr);</div><div class="line">//以下都是辅助性函数</div><div class="line">char *zstrdup(const char *s);</div><div class="line">size_t zmalloc_used_memory(void);</div><div class="line">void zmalloc_enable_thread_safeness(void);</div><div class="line">void zmalloc_set_oom_handler(void (*oom_handler)(size_t));</div><div class="line">float zmalloc_get_fragmentation_ratio(size_t rss);</div><div class="line">size_t zmalloc_get_rss(void);</div><div class="line">size_t zmalloc_get_private_dirty(void);</div><div class="line">size_t zmalloc_get_smap_bytes_by_field(char *field);</div><div class="line">size_t zmalloc_get_memory_size(void);</div><div class="line">void zlibc_free(void *ptr);</div><div class="line">#ifndef HAVE_MALLOC_SIZE</div><div class="line">size_t zmalloc_size(void *ptr);</div><div class="line">#endif</div></pre></td></tr></table></figure>
 </li>
 </ol>
