@@ -291,6 +291,203 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="www.bryon.cn/blog/2017/03/21/Redis中内存管理zmalloc解析.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="bryon">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="bryon">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2017/03/21/Redis中内存管理zmalloc解析.html" itemprop="url">
+                  Redis中内存管理zmalloc解析
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-21T15:47:20+08:00">
+                2017-03-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis源码解析/" itemprop="url" rel="index">
+                    <span itemprop="name">Redis源码解析</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/blog/2017/03/21/Redis中内存管理zmalloc解析.html#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="/blog/2017/03/21/Redis中内存管理zmalloc解析.html" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/blog/2017/03/21/Redis中内存管理zmalloc解析.html" class="leancloud_visitors" data-flag-title="Redis中内存管理zmalloc解析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>#Redis的内存管理简要概述</p>
+<p>Redis主要是用c语言进行编写的，那么在内存申请与回收方面必然伴随着大量的<code>malloc</code>与<code>free</code>等操作.它没有c++的<code>RAII</code>，智能指针这些东西.给人为管理带来一些困难。当然本篇文章主要讲的是Redis中这个zmalloc.c文件的功能。</p>
+<ol>
+<li>首先zmalloc只是一个<code>wrapper</code>,它本身并没有实现自己的allocator分配器，你可以自己替换自己想用的任何内存分配器,比如TC_malloc,jemalloc,Mac中的malloc,或则linux中glibc中的malloc.</li>
+<li>zmalloc它新增一些自己的feature:<br>1)通过在每个分配的内存前面加上<code>PREFIX_SIZE</code>字段来存放本次申请的内存的大小.(如果分配器中没有实现这个功能的话)<br>2）它通过设置全局静态变量<code>used_memory</code>字段来表示本进程已经分配的内存总数.<br>3) 另外它每次申请的内存大小总是机器字长的整数倍，不足部分它会自动多分配一些内存.</li>
+<li>它本身在代码中也实现了一些线程安全方面的函数<h1 id="下面我们一起来看下zmalloc-c的源码分析"><a href="#下面我们一起来看下zmalloc-c的源码分析" class="headerlink" title="下面我们一起来看下zmalloc.c的源码分析"></a>下面我们一起来看下zmalloc.c的源码分析</h1></li>
+<li><code>zmalloc.c</code>中主要有一下几个函数：<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">void *zmalloc(size_t size);</div><div class="line">void *zcalloc(size_t size);</div><div class="line">void *zrealloc(void *ptr, size_t size);</div><div class="line">void zfree(void *ptr);</div><div class="line">//以下都是辅助性函数</div><div class="line">char *zstrdup(const char *s);</div><div class="line">size_t zmalloc_used_memory(void);</div><div class="line">void zmalloc_enable_thread_safeness(void);</div><div class="line">void zmalloc_set_oom_handler(void (*oom_handler)(size_t));</div><div class="line">float zmalloc_get_fragmentation_ratio(size_t rss);</div><div class="line">size_t zmalloc_get_rss(void);</div><div class="line">size_t zmalloc_get_private_dirty(void);</div><div class="line">size_t zmalloc_get_smap_bytes_by_field(char *field);</div><div class="line">size_t zmalloc_get_memory_size(void);</div><div class="line">void zlibc_free(void *ptr);</div><div class="line">#ifndef HAVE_MALLOC_SIZE</div><div class="line">size_t zmalloc_size(void *ptr);</div><div class="line">#endif</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>我们主要分析一下里面最主要的几个函数<code>zmalloc</code>,<code>zcalloc</code>,<code>zrealloc</code>,<code>zfree</code>.</p>
+<ol>
+<li>zmalloc函数源码是这样的：<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> *<span class="title">zmalloc</span><span class="params">(<span class="keyword">size_t</span> size)</span> </span>&#123;</div><div class="line">  <span class="keyword">void</span> *ptr = <span class="built_in">malloc</span>(size+PREFIX_SIZE);</div><div class="line">  <span class="keyword">if</span>(!ptr) zmalloc_oom_handler(size);</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> HAVE_MALLOC_SIZE</span></div><div class="line">  update_zmalloc_stat_alloc(size+PREFIX_SIZE);</div><div class="line">  <span class="keyword">return</span> ptr;    <span class="comment">//直接返回申请的内存地址.</span></div><div class="line"><span class="meta">#<span class="meta-keyword">else</span></span></div><div class="line">  *((<span class="keyword">size_t</span>*)ptr) = size;   <span class="comment">//这里主要是把分配的内存大小记下来</span></div><div class="line">  update_zmalloc_stat_alloc(size+PREFIX_SIZE);</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line"><span class="keyword">return</span> (<span class="keyword">char</span>*)ptr + PREFIX_SIZE;  <span class="comment">//返回实际可以存储内容的内存地址. </span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>这里面它实际上申请的内存是<strong><code>size+PREFIX_SIZE</code></strong>的其中<code>PREFIX_SIZE</code>是一个宏，它是这样定义的:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> HAVE_MALLOC_SIZE</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> PREFIX_SIZE (0)               <span class="comment">/*其实这个就是不需要自己实现自己分配了多少内存，allocator已经实现了，也就不需要PREFIX_SIZE大小内存来存储申请内存大小.*/</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">else</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">if</span> defined(__sun) || defined(__sparc) || defined(__sparc__)</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> PREFIX_SIZE (sizeof(long long))</span></div><div class="line"><span class="meta">#<span class="meta-keyword">else</span> </span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> PREFIX_SIZE (sizeof (size_t))</span></div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div></pre></td></tr></table></figure></p>
+<p>这里面主要是由于各种系统之间机器字长的不同导致PREFIX_SIZE的不同.另外zmlloc_oom_handler就是处理申请内存异常时的函数句柄。它是这样定义的：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="title">zmalloc_default_oom</span><span class="params">(<span class="keyword">size_t</span> size)</span> </span>&#123;</div><div class="line">  <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">"zmalloc: out of memory trying to allocate %zu bytes\n"</span>,size);</div><div class="line">  fflush(<span class="built_in">stderr</span>);</div><div class="line">  <span class="built_in">abort</span>();</div><div class="line">&#125;</div><div class="line"><span class="function"><span class="keyword">static</span> <span class="title">void</span> <span class="params">(*zmalloc_oom_handler)</span><span class="params">(<span class="keyword">size_t</span>)</span> </span>= zmalloc_default_oom;</div></pre></td></tr></table></figure></p>
+<p>接下里我们主要看下update_zmalloc_stat_alloc(size_t n)这个实现：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//他主要是一个宏，并且在申请内存的时候把used_memory这个变量增加n</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> update_zmalloc_stat_alloc(__n) do &#123; \</span></div><div class="line">  size_t _n = (__n); \</div><div class="line">  <span class="meta-keyword">if</span>(_n &amp; (sizeof(long)-1)) _n += sizeof(long) -(_n &amp; (sizeof(long)-1)); \</div><div class="line">  <span class="meta-keyword">if</span>(zmalloc_thread_safe) &#123; \</div><div class="line">    update_zmalloc_stat_add(_n); \</div><div class="line">  &#125; <span class="meta-keyword">else</span> &#123; \</div><div class="line">    used_memory += _n; \</div><div class="line">  &#125; \</div><div class="line">&#125; while(0)</div></pre></td></tr></table></figure></p>
+<p>这里第一点需要注意的是<code>_n &amp; (sizeof(long)-1)</code> 起到一个mod作用即求出不满字长的字节数，然后申请的时候直接多申请一些.达到字长的整数倍。<br>另外对<code>used_memory</code>的增加如果在多线程中可能是不安全的，所以通过<code>zmalloc_thread_safe</code>这个static变量来判断是否线程安全，否就调用update_zmalloc_stat_add(_n)这个线程安全函数，主要通过used_memory的一个互斥锁进行的.</p>
+<ol>
+<li>zcalloc函数源码是这样的.<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"> <span class="function"><span class="keyword">void</span> <span class="title">zcalloc</span><span class="params">(<span class="keyword">size_t</span> size)</span> </span>&#123;</div><div class="line">   <span class="keyword">void</span> *ptr = <span class="built_in">calloc</span>(<span class="number">1</span>,size+PREFIX_SIZE);</div><div class="line">   <span class="keyword">if</span>(!ptr) zmalloc_oom_handler(size);</div><div class="line"> <span class="meta">#<span class="meta-keyword">ifdef</span> HAVE_MALLOC_SIZE</span></div><div class="line">    update_zmalloc_stat_alloc(zmalloc_size(ptr));</div><div class="line">    <span class="keyword">return</span> ptr;</div><div class="line"><span class="meta">#<span class="meta-keyword">else</span></span></div><div class="line">    *((<span class="keyword">size_t</span>*)ptr) = size;</div><div class="line">    update_zmalloc_stat_alloc(size+PREFIX_SIZE);</div><div class="line">    <span class="keyword">return</span> (<span class="keyword">char</span>*)ptr+PREFIX_SIZE;</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>这里基本上和zmalloc的操作顺序是一模一样的.</p>
+<ol>
+<li>zfree函数的源码是这样的:<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">zfree</span><span class="params">(<span class="keyword">void</span>* ptr)</span> </span>&#123;</div><div class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> HAVE_MALLOC_SIZE</span></div><div class="line">    <span class="keyword">void</span> *realptr;</div><div class="line">    <span class="keyword">size_t</span> oldsize;</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">    <span class="keyword">if</span> (ptr == <span class="literal">NULL</span>) <span class="keyword">return</span>;         <span class="comment">//和正常的free接口一样</span></div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> HAVE_MALLOC_SIZE</span></div><div class="line">    update_zmalloc_stat_free(zmalloc_size(ptr));</div><div class="line">    <span class="built_in">free</span>(ptr);</div><div class="line"><span class="meta">#<span class="meta-keyword">else</span></span></div><div class="line">    realptr = (<span class="keyword">char</span>*)ptr-PREFIX_SIZE;   <span class="comment">//实际开始释放内存的地址</span></div><div class="line">    oldsize = *((<span class="keyword">size_t</span>*)realptr);</div><div class="line">    update_zmalloc_stat_free(oldsize+PREFIX_SIZE);</div><div class="line">    <span class="built_in">free</span>(realptr);</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>这里主要注意的是释放内存时有两件事需要做，<strong>第一</strong>必须把保存申请内存大小的那个字段释放掉即PREFIX_SIZE.<br><strong>第二</strong>：释放时记得把<code>used_memory</code>这个变量减去释放的内存大小.<br>另外zmalloc_size(void* ptr)如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Provide zmalloc_size() for systems where this function is not provided by</span></div><div class="line"> * malloc itself, given that in that case we store a header with this</div><div class="line"> * information as the first bytes of every allocation. */</div><div class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> HAVE_MALLOC_SIZE</span></div><div class="line"><span class="keyword">size_t</span> zmalloc_size(<span class="keyword">void</span> *ptr) &#123;</div><div class="line">    <span class="keyword">void</span> *realptr = (<span class="keyword">char</span>*)ptr-PREFIX_SIZE;</div><div class="line">    <span class="keyword">size_t</span> size = *((<span class="keyword">size_t</span>*)realptr);</div><div class="line">    <span class="comment">/* Assume at least that all the allocations are padded at sizeof(long) by</span></div><div class="line">     * the underlying allocator. */</div><div class="line">    <span class="keyword">if</span> (size&amp;(<span class="keyword">sizeof</span>(<span class="keyword">long</span>)<span class="number">-1</span>)) size += <span class="keyword">sizeof</span>(<span class="keyword">long</span>)-(size&amp;(<span class="keyword">sizeof</span>(<span class="keyword">long</span>)<span class="number">-1</span>));</div><div class="line">    <span class="keyword">return</span> size+PREFIX_SIZE;   <span class="comment">//实际要释放的内存大小</span></div><div class="line">&#125;</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div></pre></td></tr></table></figure></p>
+<ol>
+<li>最后看一下zrealloc函数应该没有压力了<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> *<span class="title">zrealloc</span><span class="params">(<span class="keyword">void</span> *ptr, <span class="keyword">size_t</span> size)</span> </span>&#123;</div><div class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> HAVE_MALLOC_SIZE</span></div><div class="line">    <span class="keyword">void</span> *realptr;</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">    <span class="keyword">size_t</span> oldsize;</div><div class="line">    <span class="keyword">void</span> *newptr;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (ptr == <span class="literal">NULL</span>) <span class="keyword">return</span> zmalloc(size);</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> HAVE_MALLOC_SIZE</span></div><div class="line">    oldsize = zmalloc_size(ptr);</div><div class="line">    newptr = <span class="built_in">realloc</span>(ptr,size);</div><div class="line">    <span class="keyword">if</span> (!newptr) zmalloc_oom_handler(size);</div><div class="line"></div><div class="line">    update_zmalloc_stat_free(oldsize);</div><div class="line">    update_zmalloc_stat_alloc(zmalloc_size(newptr));</div><div class="line">    <span class="keyword">return</span> newptr;</div><div class="line"><span class="meta">#<span class="meta-keyword">else</span></span></div><div class="line">    realptr = (<span class="keyword">char</span>*)ptr-PREFIX_SIZE;</div><div class="line">    oldsize = *((<span class="keyword">size_t</span>*)realptr);</div><div class="line">    newptr = <span class="built_in">realloc</span>(realptr,size+PREFIX_SIZE);</div><div class="line">    <span class="keyword">if</span> (!newptr) zmalloc_oom_handler(size);</div><div class="line"></div><div class="line">    *((<span class="keyword">size_t</span>*)newptr) = size;</div><div class="line">    update_zmalloc_stat_free(oldsize);</div><div class="line">    update_zmalloc_stat_alloc(size);</div><div class="line">    <span class="keyword">return</span> (<span class="keyword">char</span>*)newptr+PREFIX_SIZE;</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>分析到次，redis的zmalloc.c文件主要的思路基本应该都很熟悉了，当然还有比如zmalloc_get_rss等一些辅助函数我么就不详细讲解了，它主要是从特定系统中获取进程资源数的，比如linux下的/proc/pid/stat虚拟文件里存储的字段值.</p>
+<p><strong>Reference</strong>:<br>1)<a href="https://redis.io" target="_blank" rel="external">https://redis.io</a></p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="www.bryon.cn/blog/2017/03/20/proto文件编写与应用c-版.html">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1022,7 +1219,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1033,7 +1230,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">3</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -1044,7 +1241,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">3</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

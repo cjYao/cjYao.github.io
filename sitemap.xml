@@ -2,16 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>www.bryon.cn//blog/2017/03/20/proto%E6%96%87%E4%BB%B6%E7%BC%96%E5%86%99%E4%B8%8E%E5%BA%94%E7%94%A8c-%E7%89%88.html</loc>
+    <loc>www.bryon.cn//blog/2017/03/21/Redis%E4%B8%AD%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86zmalloc%E8%A7%A3%E6%9E%90.html</loc>
     
-    <lastmod>2017-03-19T18:44:28.645Z</lastmod>
+    <lastmod>2017-03-21T10:24:32.000Z</lastmod>
     
   </url>
   
   <url>
     <loc>www.bryon.cn//blog/2016/09/02/2016-09-02.html</loc>
     
-    <lastmod>2017-03-19T18:44:09.170Z</lastmod>
+    <lastmod>2017-03-21T08:03:29.165Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>www.bryon.cn//blog/2017/03/20/proto%E6%96%87%E4%BB%B6%E7%BC%96%E5%86%99%E4%B8%8E%E5%BA%94%E7%94%A8c-%E7%89%88.html</loc>
+    
+    <lastmod>2017-03-19T18:44:28.645Z</lastmod>
     
   </url>
   
