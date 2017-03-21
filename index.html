@@ -411,8 +411,7 @@
       
         
           
-            <p>#Redis的内存管理简要概述</p>
-<p>Redis主要是用c语言进行编写的，那么在内存申请与回收方面必然伴随着大量的<code>malloc</code>与<code>free</code>等操作.它没有c++的<code>RAII</code>，智能指针这些东西.给人为管理带来一些困难。当然本篇文章主要讲的是Redis中这个zmalloc.c文件的功能。</p>
+            <h1 id="Redis的内存管理简要概述"><a href="#Redis的内存管理简要概述" class="headerlink" title="Redis的内存管理简要概述"></a>Redis的内存管理简要概述</h1><p>Redis主要是用c语言进行编写的，那么在内存申请与回收方面必然伴随着大量的<code>malloc</code>与<code>free</code>等操作.它没有c++的<code>RAII</code>，智能指针这些东西.给人为管理带来一些困难。当然本篇文章主要讲的是Redis中这个zmalloc.c文件的功能。</p>
 <ol>
 <li>首先zmalloc只是一个<code>wrapper</code>,它本身并没有实现自己的allocator分配器，你可以自己替换自己想用的任何内存分配器,比如TC_malloc,jemalloc,Mac中的malloc,或则linux中glibc中的malloc.</li>
 <li>zmalloc它新增一些自己的feature:<br>1)通过在每个分配的内存前面加上<code>PREFIX_SIZE</code>字段来存放本次申请的内存的大小.(如果分配器中没有实现这个功能的话)<br>2）它通过设置全局静态变量<code>used_memory</code>字段来表示本进程已经分配的内存总数.<br>3) 另外它每次申请的内存大小总是机器字长的整数倍，不足部分它会自动多分配一些内存.</li>
